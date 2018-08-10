@@ -6,6 +6,9 @@
 package com.comp.esclient;
 
 import com.google.gson.Gson;
+
+import ch.qos.logback.core.net.SyslogOutputStream;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -102,7 +105,7 @@ public class MainController {
     @GetMapping(value="/loaddata",produces = "application/json")
     public String loaddata(){
         try{
-            URL url = new URL("https://openebench.bsc.es/monitor/tool");
+            URL url = new URL("https://dev-openebench.bsc.es/monitor/rest/aggregate");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.addRequestProperty("accept", "application/json");
@@ -118,27 +121,33 @@ public class MainController {
                             String _id = "";
                             String name = "";
                             String description = "";
-                            String version = "";
+//                            String version = "";
                             
                             try{
-                                JsonObject object = item.asJsonObject();
-                                _id  = object.getString("@id");
+                                JsonObject o = item.asJsonObject();
                                 
+                                JsonObject object = o.getJsonArray("entities").getJsonObject(0).getJsonArray("tools").getJsonObject(0);
+                                
+//                                System.out.println(object);
+                                
+                                if(object.containsKey("@id") && !object.isNull("@id")){
+                                    _id = object.getString("@id")!=null?object.getString("@id"):"";  
+                                }
                                 if(object.containsKey("name") && !object.isNull("name")){
                                     name = object.getString("name")!=null?object.getString("name"):"";  
                                 }
                                 if(object.containsKey("description") && !object.isNull("description")){
                                     description = object.getString("description")!=null?object.getString("description"):"";  
                                 }
-                                if(object.containsKey("@version") && !object.isNull("@version")){
-                                    version = object.getString("@version")!=null?object.getString("@version"):"";         
-                                }
+//                                if(object.containsKey("@version") && !object.isNull("@version")){
+//                                    version = object.getString("@version")!=null?object.getString("@version"):"";         
+//                                }
                                                                                                                                 
                                 Map<String, Object> jsonMap = new HashMap<>();
                                 jsonMap.put("name", name);
                                 jsonMap.put("description", description);
-                                jsonMap.put("version", version);
-                                client.addById(jsonMap, _id);
+//                                jsonMap.put("version", version);
+                            	  client.addById(jsonMap, _id);
                             } catch (Exception ex) {
                                 System.out.println("ERROR PARSING " + _id );
                                 Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);

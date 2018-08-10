@@ -38,7 +38,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
  */
 public class Esclient {
     
-    private final String E_INDEX = "dev-tools";
+    private final String E_INDEX = "tools";
     private final String E_TYPE = "tool";
     
     public Esclient(){};
@@ -89,12 +89,12 @@ public class Esclient {
     }
     
     public String filter(String filterKey, String filterValue, String filterAnalyzer) throws IOException{
-        final Scroll scroll = new Scroll(TimeValue.timeValueMinutes(1L));
+        
         SearchRequest searchRequest = new SearchRequest(E_INDEX);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         QueryBuilder qb = QueryBuilders.matchQuery(filterKey, filterValue).analyzer(filterAnalyzer);
         
-        searchSourceBuilder.query(qb).size(15);
+        searchSourceBuilder.query(qb).size(10);
         
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = client.search(searchRequest);

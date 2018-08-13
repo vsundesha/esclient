@@ -7,8 +7,6 @@ package com.comp.esclient;
 
 import com.google.gson.Gson;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,6 +26,8 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.json.stream.JsonParser;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,16 +40,18 @@ import org.springframework.http.ResponseEntity;
 @RequestMapping("/")
 public class MainController {
     
-    Esclient client = new Esclient();
+    @Autowired
+    Esclient client;
+    
     Gson gson = new Gson();
     
     @GetMapping(produces = "application/json")
-    public String readAll() {
+    public String readAll() throws IOException {
         try {
-            return client.getAll();
+        	return client.getAll();
         } catch (IOException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } 
         return null;
     }
     

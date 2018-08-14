@@ -47,41 +47,24 @@ public class MainController {
     
     @GetMapping(produces = "application/json")
     public String readAll() throws IOException {
-        try {
-        	return client.getAll();
-        } catch (IOException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        } 
-        return null;
+        return client.getAll(); 
     }
     
     @GetMapping(value="/tool",produces = "application/json")
     public String getById(@RequestParam String id) {
-        try {
-            return client.getById(id);
-        } catch (IOException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+        return client.getById(id);
     }
     
     @GetMapping(value="/filter",produces = "application/json")
     public ResponseEntity<String> filter(            
             @RequestParam String text,
-            @RequestParam(required = false, defaultValue= "na") String scrollId
-            ){
-        try {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            responseHeaders.setAccessControlAllowOrigin("*");
-            String res = client.filter("name", text, "standard");
-            
-            return new ResponseEntity<String>(res, responseHeaders, HttpStatus.CREATED);
-            
-        } catch (IOException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+            @RequestParam(required = false, defaultValue= "na") String scrollId) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+        responseHeaders.setAccessControlAllowOrigin("*");
+        String res = client.filter("name", text, "standard");
+
+        return new ResponseEntity<String>(res, responseHeaders, HttpStatus.CREATED);
     }
     
     @GetMapping(value="/scroll",produces = "application/json")
@@ -89,22 +72,17 @@ public class MainController {
             @RequestParam String text,
             @RequestParam(required = false, defaultValue= "na") String scrollId
             ){
-        try {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            responseHeaders.setAccessControlAllowOrigin("*");
-            String res = client.scroll("name", text, "standard", scrollId);
-            
-            return new ResponseEntity<String>(res, responseHeaders, HttpStatus.CREATED);
-            
-        } catch (IOException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+        HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+		responseHeaders.setAccessControlAllowOrigin("*");
+		String res = client.scroll("name", text, "standard", scrollId);
+		 
+		return new ResponseEntity<String>(res, responseHeaders, HttpStatus.CREATED);
+        
     }
 
     
-    @GetMapping(value="/loaddata",produces = "application/json")
+//    @GetMapping(value="/loaddata",produces = "application/json")
     public String loaddata(){
         try{
             URL url = new URL("https://dev-openebench.bsc.es/monitor/rest/aggregate");
@@ -123,14 +101,11 @@ public class MainController {
                             String _id = "";
                             String name = "";
                             String description = "";
-//                            String version = "";
                             
                             try{
                                 JsonObject o = item.asJsonObject();
                                 
                                 JsonObject object = o.getJsonArray("entities").getJsonObject(0).getJsonArray("tools").getJsonObject(0);
-                                
-//                                System.out.println(object);
                                 
                                 if(object.containsKey("@id") && !object.isNull("@id")){
                                     _id = object.getString("@id")!=null?object.getString("@id"):"";  
@@ -141,14 +116,10 @@ public class MainController {
                                 if(object.containsKey("description") && !object.isNull("description")){
                                     description = object.getString("description")!=null?object.getString("description"):"";  
                                 }
-//                                if(object.containsKey("@version") && !object.isNull("@version")){
-//                                    version = object.getString("@version")!=null?object.getString("@version"):"";         
-//                                }
                                                                                                                                 
                                 Map<String, Object> jsonMap = new HashMap<>();
                                 jsonMap.put("name", name);
                                 jsonMap.put("description", description);
-//                                jsonMap.put("version", version);
                             	  client.addById(jsonMap, _id);
                             } catch (Exception ex) {
                                 System.out.println("ERROR PARSING " + _id );

@@ -8,6 +8,8 @@ package com.comp.esclient;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -27,50 +29,38 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 /**
  *
  * @author vsundesh
  */
-@PropertySource({ "classpath:application.properties" })
+
 @Service
-public class Esclient {
-     
-    @Autowired
-    private Environment env;
-    
-    @Value( "${esclient.esindex}" )
+
+public class Esclient {    
+
+    @Value("${esclient.esindex}")
     private String esindex;
-    
-    @Value( "${esclient.document}" )
+    @Value("${esclient.document}")
     private String document;
-    
-    @Value( "${esclient.server}" )
+    @Value("${esclient.server}")
     private String server;
-    
-    @Value( "${esclient.port}" )
+    @Value("${esclient.port}")
     private String port;
-    
-    @Value( "${esclient.protocol}" )
+    @Value("${esclient.protocol}")
     private String protocol;
     
-    RestHighLevelClient client;
+    private RestHighLevelClient client;
+    
+    private static final Logger logger = LogManager.getLogger();
     
     public Esclient(){ };
     
-    public Environment getEnv() {
-            return env;
-    }
-
-    public void setEnv(Environment env) {
-            this.env = env;
-    }
+   
     
     public RestHighLevelClient getClient() {
     	if(client==null) {
@@ -79,66 +69,106 @@ public class Esclient {
     	return client;
     }    
     
-    public RestHighLevelClient conn() {            
-        //client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http")));
-    	client = new RestHighLevelClient(RestClient.builder(new HttpHost(server, 
-    			new Integer(port), protocol)));
+    public RestHighLevelClient conn() {    
+        logger.debug("hola");
+        client = null;
+        try{
+            client = new RestHighLevelClient(RestClient.builder(new HttpHost(server,new Integer(port), protocol)));
+        }catch(NumberFormatException ex){
+            System.out.println(ex);
+        }
+    	
         return client;
     }
     
-    public String getById(String ID) throws IOException{
+    public String getById(String ID){
+    	String res = "";
         GetRequest getRequest = new GetRequest(esindex, document, ID);
-        GetResponse getResponse = this.getClient().get(getRequest);
-        
-        return getResponse.toString();  
+        GetResponse getResponse;
+		try {
+			getResponse = this.getClient().get(getRequest);
+			res = getResponse.toString();
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+        return res;
     }
-    public String deleteById(String ID) throws IOException{
+    
+    public String deleteById(String ID){
+    	String res = "";
         DeleteRequest deleteRequest = new DeleteRequest(esindex, document, ID);
-        DeleteResponse deleteResponse = this.getClient().delete(deleteRequest);
+        DeleteResponse deleteResponse;
+		try {
+			deleteResponse = this.getClient().delete(deleteRequest);
+			res = deleteResponse.toString();
+		} catch (IOException e) {
+			System.out.println(e);
+		}
         
-        return deleteResponse.toString();
+        return res;
     }
     
-    public String updateById(Map<String, Object> jsonupdate, String ID)throws IOException{
+    public String updateById(Map<String, Object> jsonupdate, String ID){
+    	String res = "";
         UpdateRequest updateRequest = new UpdateRequest(esindex, document, ID).doc(jsonupdate);
-        UpdateResponse updateResponse = this.getClient().update(updateRequest);
-        
-        return updateResponse.toString();
+        UpdateResponse updateResponse;
+		try {
+			updateResponse = this.getClient().update(updateRequest);
+			res = updateResponse.toString();
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+        return res;
     }
     
-    public String addById(Map<String, Object> jsonadd, String ID)throws IOException{
-        IndexRequest indexRequest = new IndexRequest(esindex, document,ID).source(jsonadd);
-        IndexResponse indexResponse = this.getClient().index(indexRequest);
-        
-        return indexResponse.toString();
+    public String addById(Map<String, Object> jsonadd, String ID){
+    	String res = "";
+    	IndexRequest indexRequest = new IndexRequest(esindex, document,ID).source(jsonadd);
+        IndexResponse indexResponse;
+		try {
+			indexResponse = this.getClient().index(indexRequest);
+			res = indexResponse.toString();
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+        return res;
     }
     
-    public String getAll() throws IOException {
+    public String getAll(){
+    	String res = "";
         SearchRequest searchRequest = new SearchRequest(esindex); 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder(); 
         searchSourceBuilder.query(QueryBuilders.matchAllQuery()); 
         searchRequest.source(searchSourceBuilder); 
-        SearchResponse searchResponse = this.getClient().search(searchRequest);
-        
-        return searchResponse.toString();
+        SearchResponse searchResponse;
+		try {
+			searchResponse = this.getClient().search(searchRequest);
+			return searchResponse.toString();
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+		return res;        
     }
     
-    public String filter(String filterKey, String filterValue, String filterAnalyzer) throws IOException{
-        
+    public String filter(String filterKey, String filterValue, String filterAnalyzer){
+        String res = "";
         SearchRequest searchRequest = new SearchRequest(esindex);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        QueryBuilder qb = QueryBuilders.matchQuery(filterKey, filterValue).analyzer(filterAnalyzer);
-        
-        searchSourceBuilder.query(qb).size(10);
-        
+        QueryBuilder qb = QueryBuilders.matchQuery(filterKey, filterValue).analyzer(filterAnalyzer);       
+        searchSourceBuilder.query(qb).size(10);        
         searchRequest.source(searchSourceBuilder);
-        SearchResponse searchResponse = this.getClient().search(searchRequest);
-        
-        return searchResponse.toString();
+        SearchResponse searchResponse;
+		try {
+			searchResponse = this.getClient().search(searchRequest);
+			res = searchResponse.toString();
+		} catch (IOException e) {
+			System.out.println(e);
+		}        
+        return res;
     }
     
-    public String scroll(String filterKey, String filterValue, String filterAnalyzer, String scrollId) throws IOException{
-        String res = null;
+    public String scroll(String filterKey, String filterValue, String filterAnalyzer, String scrollId){
+        String res = "";
         final Scroll scroll = new Scroll(TimeValue.timeValueMinutes(1L));  
         if("na".equals(scrollId) ){
             
@@ -149,15 +179,24 @@ public class Esclient {
 
             searchSourceBuilder.query(qb).size(20);
             searchRequest.source(searchSourceBuilder);
-            SearchResponse searchResponse = this.getClient().search(searchRequest);        
-            res = searchResponse.toString();
-            
+            SearchResponse searchResponse;
+			try {
+				searchResponse = this.getClient().search(searchRequest);
+				res = searchResponse.toString();
+			} catch (IOException e) {
+				System.out.println(e);
+			}        
         }else{
             System.out.println(scrollId);
             SearchScrollRequest scrollRequest = new SearchScrollRequest(scrollId); 
             scrollRequest.scroll(scroll);
-            SearchResponse searchResponse = this.getClient().searchScroll(scrollRequest);     
-            res = searchResponse.toString();
+            SearchResponse searchResponse;
+			try {
+				searchResponse = this.getClient().searchScroll(scrollRequest);
+				res = searchResponse.toString();
+			} catch (IOException e) {
+				System.out.println(e);
+			}     
         }                
         return res;              
     }
@@ -167,6 +206,8 @@ public class Esclient {
     public void close() throws IOException {
         client.close();
     }
+    
+
 
     
 }

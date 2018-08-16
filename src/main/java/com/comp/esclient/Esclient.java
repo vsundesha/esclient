@@ -7,10 +7,13 @@ package com.comp.esclient;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
@@ -25,6 +28,7 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.Scroll;
@@ -205,6 +209,55 @@ public class Esclient {
     
     public void close() throws IOException {
         client.close();
+    }
+    
+    // Creats an index "twitter" which doc "tweet" which contains 2 fields "name" and "description"
+    public String createIndex(){
+        String res = "";
+        CreateIndexRequest request = new CreateIndexRequest("twitter");
+        String source = "{\n" +
+                        "  \"settings\": {\n" +
+                        "    \"analysis\": {\n" +
+                        "      \"filter\": {\n" +
+                        "        \"autocomplete_filter\":{\n" +
+                        "          \"type\":\"edge_ngram\",\n" +
+                        "          \"min_gram\":1,\n" +
+                        "          \"max_gram\":20\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "      , \"analyzer\": {\n" +
+                        "        \"autocomplete\":{\n" +
+                        "          \"type\":\"custom\",\n" +
+                        "          \"tokenizer\" : \"standard\",\n" +
+                        "          \"filter\" : [\n" +
+                        "            \"lowercase\",\n" +
+                        "            \"autocomplete_filter\"\n" +
+                        "            ]\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  },\n" +
+                        "  \"mappings\":{\n" +
+                        "    \"tweet\":{\n" +
+                        "      \"properties\":{\n" +
+                        "        \"name\":{\n" +
+                        "          \"type\" : \"text\",\n" +
+                        "          \"analyzer\": \"autocomplete\"    \n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "      \n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}";
+        request.source(source, XContentType.JSON);
+        
+        try {
+            CreateIndexResponse createIndexResponse = this.getClient().indices().create(request);
+            res = "okay";
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(Esclient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return res;
     }
     
 

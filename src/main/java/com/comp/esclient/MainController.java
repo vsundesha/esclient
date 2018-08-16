@@ -139,5 +139,8 @@ public class MainController {
         return gson.toJson("data loaded");
     }
     
-
+    //@GetMapping(value="/createindex",produces = "application/json")
+    public String createIndex(){
+        return gson.toJson(client.createIndex());
+    }
 }

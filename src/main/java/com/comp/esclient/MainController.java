@@ -82,7 +82,7 @@ public class MainController {
     }
 
     
-//    @GetMapping(value="/loaddata",produces = "application/json")
+ //   @GetMapping(value="/loaddata",produces = "application/json")
     public String loaddata(){
         try{
             URL url = new URL("https://dev-openebench.bsc.es/monitor/rest/aggregate");
@@ -139,7 +139,7 @@ public class MainController {
         return gson.toJson("data loaded");
     }
     
-    //@GetMapping(value="/createindex",produces = "application/json")
+//    @GetMapping(value="/createindex",produces = "application/json")
     public String createIndex(){
         return gson.toJson(client.createIndex());
     }
